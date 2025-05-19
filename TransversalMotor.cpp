@@ -1,57 +1,121 @@
-#include "Accelthis->stepper.h"
+#include "Accelthis->stepper->h"
 #include <stdlib>
 
 #include "TransversalMotor.h"
 
-TransversalMotor::TransversalMotor(const int dirPin, const int stpPin, const int spd) {
+
+TransversalMotor::TransversalMotor(const int dirPin, const int stpPin, const int spd, const int maxFDCPin, const int minFDCPin) {
     /// Initialisation : calcul l'interval de course, donc ça peut prendre un peu de temps
+    /// dirPin & stpPin : pins de controle du driver ; maxFDCPin et minFDCPin : capteurs de fin de course
+
     this->dirPin = dirPin;
-    this->stpPin = stpPin;
-    this->spd = spd;
-    int maxFDCPin = maxFDCPin;
-    int minFDCPin = minFDCPin;
+    this->stpPin = stpPin;   
+
+    this->cruisespd = spd;
+
+    this->maxFDCPin = maxFDCPin;
+    this->minFDCPin = minFDCPin;
+    pinMode(this->maxFDCPin, INPUT);
+    pinMode(this->minFDCPin, INPUT);
 
     this->stepper = new Accelthis->stepper(this->MOTORINTERFACETYPE, this->stpPin, this->dirPin);
 
     // Calcul de la course
     Serial.println("===== CALIBRAGE COURSE BALLAST =====");
-    Serial.println(" == Remplissage ==");
+    Serial.println("\t== Remplissage ==");
   
-    this->stepper.setSpeed(500);
+    this->stepper->setSpeed(this->cruisespd);
+    int val = digitalRead(this->maxFDCPin);
     while (val == HIGH) {
-      val = digitalRead(topCrashBallast);
-      this->stepper.runSpeed();
+      val = digitalRead(this->maxFDCPin);
+      this->stepper->runSpeed();
     }
-    MAX_BALLAST = this->stepper.currentPosition();
-    Serial.println(MAX_BALLAST);
+    this->posMax = (float) this->stepper->currentPosition();
+    Serial.println(this->posMax);
   
-    this->stepper.setSpeed(-500);
+        //de-bouncing
+    this->stepper->setSpeed(-this->cruisespd);
     while (val == LOW) {
-      val = digitalRead(topCrashBallast);
-      this->stepper.runSpeed();
+      val = digitalRead(this->maxFDCPin);
+      this->stepper->runSpeed();
     }
   
-    Serial.println(" == vidange ==");
+    Serial.println("\t== vidange ==");
   
     while (val == HIGH) {
-      val = digitalRead(topCrashBallast);
-      this->stepper.runSpeed();
+      val = digitalRead(this->minFDCPin);
+      this->stepper->runSpeed();
     }
-    MIN_BALLAST = this->stepper.currentPosition();
-    Serial.println(MIN_BALLAST);
+    this->posMin = (float) this->stepper->currentPosition();
+    Serial.println(this->posMin);
     
-    this->stepper.setSpeed(500);
+        //de-boucning dans l'autre sens
+    this->stepper->setSpeed(this->cruisespd);
     while (val == LOW) {
-      val = digitalRead(topCrashBallast);
-      this->stepper.runSpeed();
+      val = digitalRead(this->minFDCPin);
+      this->stepper->runSpeed();
     }
   
-    ZERO_BALLAST = int( (MAX_BALLAST + MIN_BALLAST)/2);
+    this->posZero = int( (MAX_BALLAST + MIN_BALLAST)/2);
   
-    this->stepper.moveTo(ZERO_BALLAST);
-    while (this->stepper.distanceToGo() > 0) {
-      this->stepper.setSpeed(500);
-      this->stepper.run();
+    this->stepper->moveTo(this->posZero);
+    while (this->stepper->distanceToGo() > 0) {
+      this->stepper->setSpeed(500);
+      this->stepper->run();
     }
-    delay(1000);
+
+    Serial.println("===== fin calibrage =====\n");
+    this->status = 0;
+
+    return;
 }
+
+
+bool TransversalMotor::Goto(float d){
+    /// d entre 0 et 1.
+    /// Utilisation : \n \t mtr->Goto(0.5); \n \t mtr->move(); //dans la loop
+    if (d < 0 || d > 1) {
+        Serial.println("\t\tERREUR : chef 0<=d<=1");
+        return false;
+    }
+
+    if (d < this->GetCurrentRelativePos()) {
+        this->status = 1;
+    }
+    else {
+        this->status = -1;
+    }
+    this->spd = this->cruisespd * this->status;
+
+    this->stepper->moveTo( int(this->posMin + d*(this->posMax - this->posMin) ));
+    Serial.println("\tBallast : commandé")
+    return true;
+}
+
+
+bool TransversalMotor::Move() {
+    /// A appeler systématiquement dans le loop. Renvoie true quand la position est atteinte.
+    if (this->status == 0) {
+        return true;
+    }
+    else {
+        this->stepper->setSpeed(this->spd);
+        this->stepper->run();
+
+        if (this->stepper->distanceToGo() == 0) {
+            this->status = 0;
+            this->spd = 0;
+
+            return true;
+        }
+
+        return false;
+    }
+
+}
+
+float TransversalMotor::GetCurrentRelativePos() {
+    return ((float) this->stepper->currentPosition()-this->posMax)/(this->posMin - this-> posMax);
+}
+
+

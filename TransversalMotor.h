@@ -1,4 +1,4 @@
-// Classe mère des ballasts et de la masselotte de tangage.
+/// Classe mère des ballasts et de la masselotte de tangage.
 
 #include "AccelStepper.h"
 #include <stdlib>
@@ -11,15 +11,19 @@ public:
 
     bool Goto(float d);
 
-    void Move();
+    bool Move();
 
     int GetStatus();
 
+    float GetCurrentRelativePos();
+
 private:
-    int posMin;
-    int posMax;
+    float posMin;
+    float posMax;
+    float posZero;
 
     int spd;
+    int cruisespd;
 
     int dirPin;
     int stpPin;
@@ -27,9 +31,12 @@ private:
     int maxFDCPin;
     int minFDCPin;
 
+    int status;
+    // 0: Sleeping, 1: Moving up, -1: Moving down
+
     const int MOTORINTERFACETYPE = 1;
 
     AccelStepper* stepper;
 
-    void ForceMove();
+    
 }
