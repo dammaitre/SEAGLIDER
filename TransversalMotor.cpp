@@ -1,5 +1,4 @@
-#include "Accelthis->stepper->h"
-#include <stdlib>
+#include "AccelStepper.h"
 
 #include "TransversalMotor.h"
 
@@ -18,8 +17,8 @@ TransversalMotor::TransversalMotor(const int dirPin, const int stpPin, const int
     pinMode(this->maxFDCPin, INPUT);
     pinMode(this->minFDCPin, INPUT);
 
-    this->stepper = new Accelthis->stepper(this->MOTORINTERFACETYPE, this->stpPin, this->dirPin);
-
+    this->stepper = new AccelStepper(this->MOTORINTERFACETYPE, this->stpPin, this->dirPin);
+    stepper->setMaxSpeed(1000);
     // Calcul de la course
     Serial.println("===== CALIBRAGE COURSE BALLAST =====");
     Serial.println("\t== Remplissage ==");
@@ -56,7 +55,7 @@ TransversalMotor::TransversalMotor(const int dirPin, const int stpPin, const int
       this->stepper->runSpeed();
     }
   
-    this->posZero = int( (MAX_BALLAST + MIN_BALLAST)/2);
+    this->posZero = (float) (this->posMax + this->posMin)/2;
   
     this->stepper->moveTo(this->posZero);
     while (this->stepper->distanceToGo() > 0) {
@@ -80,15 +79,16 @@ bool TransversalMotor::Goto(float d){
     }
 
     if (d < this->GetCurrentRelativePos()) {
-        this->status = 1;
+        this->status = -1;
     }
     else {
-        this->status = -1;
+        this->status = 1;
     }
     this->spd = this->cruisespd * this->status;
 
     this->stepper->moveTo( int(this->posMin + d*(this->posMax - this->posMin) ));
-    Serial.println("\tBallast : commandé")
+    Serial.println("\tBallast : commandé");
+    Serial.println(int(this->posMin + d*(this->posMax - this->posMin) ));
     return true;
 }
 
@@ -105,6 +105,8 @@ bool TransversalMotor::Move() {
         if (this->stepper->distanceToGo() == 0) {
             this->status = 0;
             this->spd = 0;
+
+            Serial.println("STOP");
 
             return true;
         }

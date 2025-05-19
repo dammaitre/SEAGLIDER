@@ -11,10 +11,14 @@ void setup() {
     }
 
     delay(800);
-    Serial.println("SEAGLIDER OPERATIONNEL")
+    Serial.println("SEAGLIDER OPERATIONNEL");
 
-    ballast = new TransversalMotor(8, 9, 500, 5, 4);
+    ballast = new TransversalMotor(2, 3, 400, 5, 4);
+    ballast->Goto(.9);
   }
 
-  
+void loop() {
+    //Remplissage
+    ballast->Move();
+}
 
