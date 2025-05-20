@@ -15,10 +15,24 @@ void setup() {
 
     ballast = new TransversalMotor(2, 3, 400, 5, 4);
     ballast->Goto(.9);
-  }
+}
+
+int step = 0;
 
 void loop() {
     //Remplissage
-    ballast->Move();
+    if (step <= 200 && ballast->Move()) {
+        step++;
+        if (step % 2 == 0) {
+            ballast->Goto(.9);
+        }
+        else {
+            ballast->Goto(.1);
+        }
+    }
+    else if (step == 200) {
+        Serial.println("TEST FINI !");
+        step++;
+    }
 }
 
