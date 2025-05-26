@@ -1,14 +1,15 @@
-#include "tools.h.ino"
-#include "itools.cpp.ino"
-
-bool bool_ballast = true //vrai pour ouvrir la vanne
+#include "tools_electrovanne.h"
 
 void setup() {
-  // initialize digital pin D4 as an output.
-  pinMode(RELAY_PIN, OUTPUT);
+  setupElectrovanne();  // initialiser la vanne correctement
 }
 
-// the loop function runs over and over again forever
 void loop() {
-  Vanne(bool_ballast)
+  bool_ballast = true;
+  Vanne(bool_ballast);
+  delay(5000);
+  
+  bool_ballast = false;
+  Vanne(bool_ballast);
+  delay(5000);
 }
