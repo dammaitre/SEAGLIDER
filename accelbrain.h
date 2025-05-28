@@ -8,11 +8,15 @@ public:
 
     void Calibrate();
 
+    int GetZOrder();
+
+    void ReadAccel();
+
 private:
     LSM303* compass;
 
-    const int calibrationTime = 1000;
+    const int calibrationTime = 5000;
 
-    float* zero;
-    float* stdzero;
-}
+    long int* zero;
+    double* stdzero;
+};

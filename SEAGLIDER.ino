@@ -7,8 +7,8 @@
 #include "accelbrain.h"
 #include "tools_electrovanne.h"
 
-TransversalMotor* ballast;
-TransversalMotor* mslttTangage;
+//TransversalMotor* ballast;
+//TransversalMotor* mslttTangage;
 AccelBrain* pilot;
 
 void setup() {
@@ -34,7 +34,17 @@ void setup() {
     */
 
     pilot = new AccelBrain();
-    
+
+    Serial.println("Mesures mtn");
+
+    delay(1000);
+    pilot->ReadAccel();
+    /*delay(1000);
+    pilot->ReadAccel();
+    delay(1000);
+    pilot->ReadAccel();*/
+
+    pilot->Calibrate();
 
 }
 
@@ -57,5 +67,7 @@ void loop() {
         Serial.println("TEST FINI !");
         step++;
     }*/
+
+
 }
 
