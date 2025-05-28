@@ -59,12 +59,13 @@ TransversalMotor::TransversalMotor(const int dirPin, const int stpPin, const int
   
     this->stepper->moveTo(this->posZero);
     while (this->stepper->distanceToGo() > 0) {
-      this->stepper->setSpeed(500);
+      this->stepper->setSpeed(this->cruisespd);
       this->stepper->run();
     }
 
     Serial.println("===== fin calibrage =====\n");
     this->status = 0;
+    this->estEnTrainDeGalerer = false;
 
     return;
 }
@@ -99,6 +100,15 @@ bool TransversalMotor::Move() {
         return true;
     }
     else {
+        if ( (digitalRead(this->maxFDCPin) == LOW) || (digitalRead(this->minFDCPin) == LOW)) {
+            if (!this->estEnTrainDeGalerer) {
+                Serial.print("Erreur : capteur de fin de course atteint !" );
+                Serial.println(this->stepper->distanceToGo());
+                this->estEnTrainDeGalerer = true;
+            }
+            return false;
+        }
+        this->estEnTrainDeGalerer = false;
         this->stepper->setSpeed(this->spd);
         this->stepper->run();
 

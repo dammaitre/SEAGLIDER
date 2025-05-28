@@ -8,6 +8,7 @@ void setupElectrovanne() {
 }
 
 void Vanne(bool etat) {
+    /// true : Ouvert, false : fermé
     if (etat) {
         digitalWrite(RELAY_PIN, HIGH);
     } else {

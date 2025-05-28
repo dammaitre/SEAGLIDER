@@ -32,6 +32,7 @@ private:
 
     int status;
     // 0: Sleeping, 1: Moving up, -1: Moving down
+    bool estEnTrainDeGalerer;
 
     const int MOTORINTERFACETYPE = 1;
 
