@@ -57,10 +57,21 @@ TransversalMotor::TransversalMotor(const int dirPin, const int stpPin, const int
   
     this->posZero = (float) (this->posMax + this->posMin)/2;
   
+    Serial.println("Bon ?");
+
     this->stepper->moveTo(this->posZero);
+    /* Serial.println(this->stepper->distanceToGo());
+    if (.5 < this->GetCurrentRelativePos()) {
+        this->status = -1;
+    }
+    else {
+        this->status = 1;
+    }
+    this->spd = this->cruisespd * this->status; */
     while (this->stepper->distanceToGo() > 0) {
-      this->stepper->setSpeed(this->cruisespd);
-      this->stepper->run();
+      this->stepper->setSpeed(this->spd);
+      this->stepper->runSpeed();
+      //Serial.println(this->stepper->distanceToGo());
     }
 
     Serial.println("===== fin calibrage =====\n");
@@ -110,7 +121,7 @@ bool TransversalMotor::Move() {
         }
         this->estEnTrainDeGalerer = false;
         this->stepper->setSpeed(this->spd);
-        this->stepper->run();
+        this->stepper->runSpeed();
 
         if (this->stepper->distanceToGo() == 0) {
             this->status = 0;
@@ -127,7 +138,7 @@ bool TransversalMotor::Move() {
 }
 
 float TransversalMotor::GetCurrentRelativePos() {
-    return ((float) this->stepper->currentPosition()-this->posMax)/(this->posMin - this-> posMax);
+    return ((float) this->stepper->currentPosition()-this->posMin)/(this->posMax - this-> posMin);
 }
 
 

@@ -4,12 +4,10 @@
 
 
 #include "TransversalMotor.h"
-#include "accelbrain.h"
 #include "tools_electrovanne.h"
 
 TransversalMotor* ballast;
-//TransversalMotor* mslttTangage;
-AccelBrain* pilot;
+TransversalMotor* mslttTangage;
 
 void setup() {
     Serial.begin(9600);
@@ -20,31 +18,24 @@ void setup() {
     delay(800);
     Serial.println("SEAGLIDER OPERATIONNEL");
 
-    setupElectrovanne();
-    Vanne(false);
-    
     // Initialisation du ballast
     ballast = new TransversalMotor(2, 3, 200, 5, 4);
     ballast->Goto(.9);
 
-    Vanne(true);
-
     // Initialisation de la masselotte de tangage
-    //mslttTangage = new TransversalMotor(0, 0, 100, 0, 0);
+    mslttTangage = new TransversalMotor(0, 0, 100, 0, 0);
 
     // Initialisation de la vanne
     setupElectrovanne();
 
-
-    pilot = new AccelBrain();
-    pilot->Calibrate();
+    // 
 
 }
 
 int step = 0;
 
 void loop() {
-    /*//Remplissage
+    //Remplissage
     if (step <= 200 && ballast->Move()) {
         Serial.print("step : ");
         Serial.println(step);
@@ -59,8 +50,6 @@ void loop() {
     else if (step == 200) {
         Serial.println("TEST FINI !");
         step++;
-    }*/
-
-
+    }
 }
 
